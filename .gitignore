@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+dist/
+build/
+.next/
+out/
+*.apk
+*.aab
+
+# Flutter
+android/.dart_tool/
+android/.flutter-plugins
+android/.flutter-plugins-dependencies
+android/.packages
+android/build/
+android/.pub-cache/
+android/.pub/
+android/ios/Pods/
+android/ios/.symlinks/
+android/android/.gradle/
+android/android/local.properties
+android/android/app/debug/
+android/android/app/profile/
+android/android/app/release/
+android/**/*.iml
+android/.idea/
+
+# Env
+.env
+.env.local
+.env.*.local
+*.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+
+# Misc
+.turbo/
+.vercel/
+tmp/
+temp/
+uploads/
