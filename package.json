@@ -1,11 +1,11 @@
 {
-  "name": "tienda-cuba-admin",
+  "name": "tienda-cuba-web",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3002",
+    "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start -p 3002"
+    "start": "next start -p 3001"
   },
   "dependencies": {
     "next": "^14.1.0",
