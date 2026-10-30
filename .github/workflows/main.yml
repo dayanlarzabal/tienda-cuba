@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -27,17 +27,62 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Create Flutter project structure
+        run: |
+          flutter create --org com.tiendacuba --project-name tienda_cuba app
+          mkdir -p app/lib/screens app/lib/providers app/lib/services app/assets/images app/assets/icons
+          
+          # Copiar archivos Dart si existen en la raíz
+          cp -f main.dart app/lib/ 2>/dev/null || true
+          cp -f home_screen.dart app/lib/screens/ 2>/dev/null || true
+          cp -f cart_screen.dart app/lib/screens/ 2>/dev/null || true
+          cp -f checkout_screen.dart app/lib/screens/ 2>/dev/null || true
+          cp -f orders_screen.dart app/lib/screens/ 2>/dev/null || true
+          cp -f payment_transfermovil_screen.dart app/lib/screens/ 2>/dev/null || true
+          cp -f payment_crypto_screen.dart app/lib/screens/ 2>/dev/null || true
+          cp -f auth_provider.dart app/lib/providers/ 2>/dev/null || true
+          cp -f cart_provider.dart app/lib/providers/ 2>/dev/null || true
+          cp -f api_service.dart app/lib/services/ 2>/dev/null || true
+          
+          # pubspec mínimo
+          cat > app/pubspec.yaml << 'EOF'
+          name: tienda_cuba
+          description: Tienda Cuba
+          publish_to: 'none'
+          version: 1.0.0+1
+          environment:
+            sdk: '>=3.2.0 <4.0.0'
+          dependencies:
+            flutter:
+              sdk: flutter
+            cupertino_icons: ^1.0.6
+            http: ^1.2.0
+            provider: ^6.1.1
+            shared_preferences: ^2.2.2
+            image_picker: ^1.0.7
+            intl: ^0.19.0
+            url_launcher: ^6.2.4
+            flutter_secure_storage: ^9.0.0
+            go_router: ^13.2.0
+          dev_dependencies:
+            flutter_test:
+              sdk: flutter
+            flutter_lints: ^3.0.1
+          flutter:
+            uses-material-design: true
+          EOF
+
       - name: Get dependencies
-        working-directory: android
+        working-directory: app
         run: flutter pub get
 
-      - name: Build APK (release)
-        working-directory: android
+      - name: Build APK
+        working-directory: app
         run: flutter build apk --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: tienda-cuba-apk
-          path: android/build/app/outputs/flutter-apk/app-release.apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
