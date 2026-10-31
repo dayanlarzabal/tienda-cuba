@@ -30,12 +30,15 @@ jobs:
       - name: Create Flutter app
         run: flutter create --org com.tiendacuba --project-name tienda_cuba app
 
-      - name: Copy store code
+      - name: Install store code
         run: |
           if [ -f store_main.dart ]; then
             cp store_main.dart app/lib/main.dart
           elif [ -f main.dart ]; then
             cp main.dart app/lib/main.dart
+          else
+            echo "Falta store_main.dart"
+            exit 1
           fi
 
       - name: Get dependencies
