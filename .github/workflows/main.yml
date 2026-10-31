@@ -27,62 +27,167 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Create Flutter project structure
+      - name: Create modern store app
         run: |
           flutter create --org com.tiendacuba --project-name tienda_cuba app
-          mkdir -p app/lib/screens app/lib/providers app/lib/services app/assets/images app/assets/icons
-          
-          # Copiar archivos Dart si existen en la raíz
-          cp -f main.dart app/lib/ 2>/dev/null || true
-          cp -f home_screen.dart app/lib/screens/ 2>/dev/null || true
-          cp -f cart_screen.dart app/lib/screens/ 2>/dev/null || true
-          cp -f checkout_screen.dart app/lib/screens/ 2>/dev/null || true
-          cp -f orders_screen.dart app/lib/screens/ 2>/dev/null || true
-          cp -f payment_transfermovil_screen.dart app/lib/screens/ 2>/dev/null || true
-          cp -f payment_crypto_screen.dart app/lib/screens/ 2>/dev/null || true
-          cp -f auth_provider.dart app/lib/providers/ 2>/dev/null || true
-          cp -f cart_provider.dart app/lib/providers/ 2>/dev/null || true
-          cp -f api_service.dart app/lib/services/ 2>/dev/null || true
-          
-          # pubspec mínimo
-          cat > app/pubspec.yaml << 'EOF'
-          name: tienda_cuba
-          description: Tienda Cuba
-          publish_to: 'none'
-          version: 1.0.0+1
-          environment:
-            sdk: '>=3.2.0 <4.0.0'
-          dependencies:
-            flutter:
-              sdk: flutter
-            cupertino_icons: ^1.0.6
-            http: ^1.2.0
-            provider: ^6.1.1
-            shared_preferences: ^2.2.2
-            image_picker: ^1.0.7
-            intl: ^0.19.0
-            url_launcher: ^6.2.4
-            flutter_secure_storage: ^9.0.0
-            go_router: ^13.2.0
-          dev_dependencies:
-            flutter_test:
-              sdk: flutter
-            flutter_lints: ^3.0.1
-          flutter:
-            uses-material-design: true
-          EOF
+          cat > app/lib/main.dart << 'DART_EOF'
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-      - name: Get dependencies
-        working-directory: app
-        run: flutter pub get
+void main() {
+  runApp(const TiendaCubaApp());
+}
 
-      - name: Build APK
-        working-directory: app
-        run: flutter build apk --release
+class TiendaCubaApp extends StatelessWidget {
+  const TiendaCubaApp({super.key});
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: tienda-cuba-apk
-          path: app/build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 30
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Tienda Cuba',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0A84FF), brightness: Brightness.light),
+        useMaterial3: true,
+        fontFamily: 'Roboto',
+        scaffoldBackgroundColor: const Color(0xFFF5F7FA),
+      ),
+      home: const StoreHome(),
+    );
+  }
+}
+
+class Product {
+  final String id, name, category, description;
+  final double priceCUP, priceMLC;
+  final Color color;
+  final IconData icon;
+  Product({required this.id, required this.name, required this.category, required this.description, required this.priceCUP, required this.priceMLC, required this.color, required this.icon});
+}
+
+final List<Product> demoProducts = [
+  Product(id: '1', name: 'Licuadora Oster 10 vel.', category: 'Electro', description: 'Vaso de vidrio, 10 velocidades, potente y duradera.', priceCUP: 18500, priceMLC: 45, color: const Color(0xFF5B8DEF), icon: Icons.blender),
+  Product(id: '2', name: 'Aire Split 1 tonelada', category: 'Electro', description: '12000 BTU, eficiente, ideal para habitación.', priceCUP: 95000, priceMLC: 280, color: const Color(0xFF4ECDC4), icon: Icons.ac_unit),
+  Product(id: '3', name: 'Camiseta Polo hombre', category: 'Ropa', description: 'Algodón premium, varias tallas y colores.', priceCUP: 2800, priceMLC: 8, color: const Color(0xFFFF6B6B), icon: Icons.checkroom),
+  Product(id: '4', name: 'Arroz 5 kg', category: 'Alimentos', description: 'Grano largo, paquete familiar de 5 kg.', priceCUP: 1200, priceMLC: 3.5, color: const Color(0xFFFFB347), icon: Icons.rice_bowl),
+  Product(id: '5', name: 'Aceite vegetal 1L', category: 'Alimentos', description: 'Aceite refinado, botella de 1 litro.', priceCUP: 950, priceMLC: 2.8, color: const Color(0xFF95E1D3), icon: Icons.opacity),
+  Product(id: '6', name: 'Zapatillas deportivas', category: 'Ropa', description: 'Cómodas, ligeras, para uso diario.', priceCUP: 6500, priceMLC: 18, color: const Color(0xFFA78BFA), icon: Icons.sports_sneakers),
+  Product(id: '7', name: 'Televisor 32" LED', category: 'Electro', description: 'HD Ready, HDMI y USB, bajo consumo.', priceCUP: 42000, priceMLC: 120, color: const Color(0xFF60A5FA), icon: Icons.tv),
+  Product(id: '8', name: 'Café molido 250g', category: 'Alimentos', description: 'Café cubano aromático, tueste medio.', priceCUP: 1800, priceMLC: 5, color: const Color(0xFFD4A373), icon: Icons.coffee),
+];
+
+class CartItem {
+  final Product product;
+  int qty;
+  CartItem(this.product, [this.qty = 1]);
+}
+
+class StoreHome extends StatefulWidget {
+  const StoreHome({super.key});
+  @override
+  State<StoreHome> createState() => _StoreHomeState();
+}
+
+class _StoreHomeState extends State<StoreHome> {
+  final List<CartItem> cart = [];
+  String selectedCategory = 'Todos';
+  int tab = 0;
+
+  List<String> get categories => ['Todos', ...{for (final p in demoProducts) p.category}];
+
+  List<Product> get filtered => selectedCategory == 'Todos'
+      ? demoProducts
+      : demoProducts.where((p) => p.category == selectedCategory).toList();
+
+  int get cartCount => cart.fold(0, (s, i) => s + i.qty);
+  double get cartTotal => cart.fold(0.0, (s, i) => s + i.product.priceCUP * i.qty);
+
+  void addToCart(Product p) {
+    setState(() {
+      final existing = cart.where((c) => c.product.id == p.id);
+      if (existing.isNotEmpty) {
+        existing.first.qty++;
+      } else {
+        cart.add(CartItem(p));
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('${p.name} añadido al carrito'),
+      duration: const Duration(seconds: 1),
+      behavior: SnackBarBehavior.floating,
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: tab,
+        children: [
+          _buildHome(),
+          _buildCart(),
+          _buildProfile(),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: tab,
+        onDestinationSelected: (i) => setState(() => tab = i),
+        destinations: [
+          const NavigationDestination(icon: Icon(Icons.storefront_outlined), selectedIcon: Icon(Icons.storefront), label: 'Tienda'),
+          NavigationDestination(
+            icon: Badge(isLabelVisible: cartCount > 0, label: Text('$cartCount'), child: const Icon(Icons.shopping_cart_outlined)),
+            selectedIcon: Badge(isLabelVisible: cartCount > 0, label: Text('$cartCount'), child: const Icon(Icons.shopping_cart)),
+            label: 'Carrito',
+          ),
+          const NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Cuenta'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHome() {
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 160,
+          pinned: true,
+          backgroundColor: const Color(0xFF0A84FF),
+          foregroundColor: Colors.white,
+          flexibleSpace: FlexibleSpaceBar(
+            title: const Text('Tienda Cuba', style: TextStyle(fontWeight: FontWeight.bold)),
+            background: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF0A84FF), Color(0xFF0055CC)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: const Align(
+                alignment: Alignment.bottomLeft,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 48),
+                  child: Text('Compra fácil · CUP · MLC · Crypto', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Banner
+        SliverToBoxAdapter(
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [Color(0xFF667EEA), Color(0xFF764BA2)]),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Envío a toda Cuba', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 4),
+                      Text('Transfermóvil · TRX · USDT', style: TextStyle(color: Colors.white
