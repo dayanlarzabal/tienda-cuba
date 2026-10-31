@@ -40,21 +40,28 @@ jobs:
             echo "ERROR: falta store_main.dart"
             exit 1
           fi
-          if [ -f app_icon.png ]; then
+
+          ICON=""
+          for f in app_icon.png app_icon.jpg app_icon.jpeg icon.png icon.jpg; do
+            if [ -f "$f" ]; then ICON="$f"; break; fi
+          done
+          if [ -n "$ICON" ]; then
             mkdir -p app/android/app/src/main/res/mipmap-xxxhdpi
             mkdir -p app/android/app/src/main/res/mipmap-xxhdpi
             mkdir -p app/android/app/src/main/res/mipmap-xhdpi
             mkdir -p app/android/app/src/main/res/mipmap-hdpi
             mkdir -p app/android/app/src/main/res/mipmap-mdpi
-            cp app_icon.png app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-            cp app_icon.png app/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-            cp app_icon.png app/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-            cp app_icon.png app/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-            cp app_icon.png app/android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-            echo "Icono instalado"
+            cp "$ICON" app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+            cp "$ICON" app/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+            cp "$ICON" app/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+            cp "$ICON" app/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+            cp "$ICON" app/android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+            echo "Icono instalado desde $ICON"
           else
-            echo "AVISO: no hay app_icon.png"
+            echo "AVISO: no se encontro icono"
+            ls -la
           fi
+
           cd app
           if ! grep -q shared_preferences pubspec.yaml; then
             sed -i '/cupertino_icons:/a\  shared_preferences: ^2.2.2' pubspec.yaml
