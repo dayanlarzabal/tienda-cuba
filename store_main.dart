@@ -706,9 +706,9 @@ class _ShopTab extends StatelessWidget {
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
-        childAspectRatio: 0.70,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.62,
       ),
       delegate: SliverChildBuilderDelegate(
         (context, i) {
@@ -757,63 +757,97 @@ class _ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
+      elevation: 0,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Ink(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.grey.shade200),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Imagen / icono (altura fija relativa)
+              Expanded(
+                flex: 4,
+                child: product.imageUrl.isNotEmpty
+                    ? Image.network(
+                        product.imageUrl,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorBuilder: (_, __, ___) => _iconBox(),
+                      )
+                    : _iconBox(),
+              ),
+              // Info + botón (sin overflow)
               Expanded(
                 flex: 5,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                  child: product.imageUrl.isNotEmpty
-                      ? Image.network(product.imageUrl, fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _iconBox())
-                      : _iconBox(),
-                ),
-              ),
-              Expanded(
-                flex: 6,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '${product.kindLabel} · ${product.isDigital ? 'Digital' : 'Envío'}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            fontSize: 10, fontWeight: FontWeight.w700, color: product.accent),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: product.accent,
+                        ),
                       ),
                       const SizedBox(height: 2),
-                      Text(product.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                      Text(
+                        product.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12.5,
+                          height: 1.15,
+                        ),
+                      ),
                       const Spacer(),
-                      Text('${product.priceCUP.toStringAsFixed(0)} CUP',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                      Text('${product.priceMLC} MLC',
-                          style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                      Text(
+                        '${product.priceCUP.toStringAsFixed(0)} CUP',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        '${product.priceMLC} MLC',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                      ),
                       const SizedBox(height: 6),
                       SizedBox(
                         width: double.infinity,
-                        height: 32,
+                        height: 30,
                         child: FilledButton(
                           onPressed: onAdd,
                           style: FilledButton.styleFrom(
                             backgroundColor: const Color(0xFFE94560),
+                            foregroundColor: Colors.white,
                             padding: EdgeInsets.zero,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-                          child: const Text('Añadir',
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                          child: const Text(
+                            'Añadir',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                          ),
                         ),
                       ),
                     ],
@@ -827,8 +861,12 @@ class _ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _iconBox() =>
-      Container(color: product.accent.withOpacity(0.12), child: Icon(product.icon, size: 48, color: product.accent));
+  Widget _iconBox() {
+    return ColoredBox(
+      color: product.accent.withOpacity(0.12),
+      child: Center(child: Icon(product.icon, size: 42, color: product.accent)),
+    );
+  }
 }
 
 class _ProductSheet extends StatelessWidget {
