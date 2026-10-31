@@ -30,7 +30,7 @@ jobs:
       - name: Create Flutter app
         run: flutter create --org com.tiendacuba --project-name tienda_cuba app
 
-      - name: Install store code
+      - name: Install store code and dependencies
         run: |
           if [ -f store_main.dart ]; then
             cp store_main.dart app/lib/main.dart
@@ -39,6 +39,15 @@ jobs:
           else
             echo "Falta store_main.dart"
             exit 1
+          fi
+          cd app
+          if ! grep -q shared_preferences pubspec.yaml; then
+            sed -i '/cupertino_icons:/a\  shared_preferences: ^2.2.2' pubspec.yaml
+          fi
+          if [ -f android/app/src/main/AndroidManifest.xml ]; then
+            if ! grep -q INTERNET android/app/src/main/AndroidManifest.xml; then
+              sed -i '/<manifest/a\    <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
+            fi
           fi
 
       - name: Get dependencies
