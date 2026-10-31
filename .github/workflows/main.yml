@@ -30,22 +30,46 @@ jobs:
       - name: Create Flutter app
         run: flutter create --org com.tiendacuba --project-name tienda_cuba app
 
-      - name: Install store code and dependencies
+      - name: Install store code, icon and dependencies
         run: |
           if [ -f store_main.dart ]; then
             cp store_main.dart app/lib/main.dart
+            echo "store_main.dart copiado"
           elif [ -f main.dart ]; then
             cp main.dart app/lib/main.dart
+            echo "main.dart copiado"
           else
-            echo "Falta store_main.dart"
+            echo "ERROR: falta store_main.dart"
+            ls -la
             exit 1
           fi
+
+          # Icono de la app (app_icon.png en la raiz del repo)
+          if [ -f app_icon.png ]; then
+            mkdir -p app/android/app/src/main/res/mipmap-xxxhdpi
+            mkdir -p app/android/app/src/main/res/mipmap-xxhdpi
+            mkdir -p app/android/app/src/main/res/mipmap-xhdpi
+            mkdir -p app/android/app/src/main/res/mipmap-hdpi
+            mkdir -p app/android/app/src/main/res/mipmap-mdpi
+            cp app_icon.png app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+            cp app_icon.png app/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+            cp app_icon.png app/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+            cp app_icon.png app/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+            cp app_icon.png app/android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+            # Adaptive icon foreground (Android 8+)
+            mkdir -p app/android/app/src/main/res/mipmap-anydpi-v26
+            echo "Icono instalado"
+          else
+            echo "AVISO: no hay app_icon.png, se usara el icono por defecto"
+            ls -la
+          fi
+
           cd app
           if ! grep -q shared_preferences pubspec.yaml; then
             sed -i '/cupertino_icons:/a\  shared_preferences: ^2.2.2' pubspec.yaml
           fi
           if [ -f android/app/src/main/AndroidManifest.xml ]; then
-            if ! grep -q INTERNET android/app/src/main/AndroidManifest.xml; then
+            if ! grep -q 'android.permission.INTERNET' android/app/src/main/AndroidManifest.xml; then
               sed -i '/<manifest/a\    <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
             fi
           fi
@@ -60,7 +84,4 @@ jobs:
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
-        with:
-          name: tienda-cuba-apk
-          path: app/build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 30
+        with
